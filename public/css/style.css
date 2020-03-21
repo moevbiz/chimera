@@ -20,8 +20,22 @@
     border: 1px dotted;
 }
 
+#load-more {
+    cursor: pointer;
+    background: none;
+    border: 1px dotted;
+}
+#load-more:hover {
+    background: lightgray;
+}
 #load-more.loading {
-    background-color: red
+    display: none;
+}
+.loading-indicator {
+    display: none;
+}
+#load-more.loading + .loading-indicator {
+    display: block;
 }
 
 #filters {

@@ -22,9 +22,14 @@
 
     </div>
     <br>
-    <button id="load-more" style="width: 100%">
-        Load More
-    </button>
+    <div style="height: 2em">
+        <button id="load-more" class="loading" style="width: 100%">
+            Load More
+        </button>
+        <span class="loading-indicator" style="text-align: center;">
+            Loading…
+        </span>
+    </div>
 </body>
 <script>
     const container = document.getElementById('container')
@@ -57,6 +62,8 @@
 
     // pageNum = number of next page, classFilter = which type of content to show
     function request(pageNum, classFilter = 'All') {
+
+        moreBtn.classList.add('loading')
 
         if (doneLoading) return
 
@@ -114,6 +121,7 @@
             var itemEl = document.createElement('article');
             itemEl.classList.add('block');
             itemEl.dataset.class = item.class;
+            itemEl.id = item.id;
 
             // hide element if a filtered request is made
             // and the element class is not the requested class
@@ -175,7 +183,7 @@
                 `
             }
             // only append non-channel nodes for now :~)
-            if (item.class != 'Channel') container.appendChild(itemEl);
+            if (item.class != 'Channel' && item.class != 'Media') container.appendChild(itemEl);
         });
     }
 
