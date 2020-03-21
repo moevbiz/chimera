@@ -174,8 +174,8 @@
                     <i>${item.description}</i>
                 `
             }
-
-            container.appendChild(itemEl);
+            // only append non-channel nodes for now :~)
+            if (item.class != 'Channel') container.appendChild(itemEl);
         });
     }
 
