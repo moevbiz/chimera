@@ -10,42 +10,110 @@
     <header>
         <img src="./images/Zvc2dtW.png" alt="" width="200">
         <nav id="filters">
-
+            <button data-filter-value="All" class="active">All</button>
+            <button data-filter-value="Link">Link</button>
+            <button data-filter-value="Text">Text</button>
+            <button data-filter-value="Image">Image</button>
+            <button data-filter-value="Attachment">Attachment</button>
         </nav>
     </header>
     <br>
     <div id="container">
 
     </div>
+    <br>
+    <button id="load-more" style="width: 100%">
+        Load More
+    </button>
 </body>
 <script>
     const container = document.getElementById('container')
     const filters = document.getElementById('filters')
     const classes = [];
 
+    const moreBtn = document.getElementById('load-more')
+
+    const perPage = 13
+
     document.addEventListener('DOMContentLoaded', function() {
         init();
     })
 
+    moreBtn.addEventListener('click', function(e) {
+        //reset element count before next request
+        countEls = 0;
+        var filterValue = filters.querySelector('button.active').innerHTML
+        request(this.dataset.loadPage, filterValue)
+        this.classList.add('loading')
+    })
+
+    let currentPage = 1;
+
     function init() {
-        fetch('api')
-        .then(res => res.json())
-        .then(data => {
-            // add to array of classes and exclude "channels"
-            makeFilterButtons(data.contents, 'Channel');
-            appendToContainer(data.contents);
-            addEventListeners();
-        })
-        .catch(error => console.error(error))
+        request(currentPage);
     }
 
-    function appendToContainer(data) {
+    // pageNum = number of next page, classFilter = which type of content to show
+    function request(pageNum, classFilter = 'All') {
+
+        if (countEls > perPage) {
+            return countEls
+        } else {
+            if (classFilter != 'All') {
+                console.log(`filtering by ${classFilter}`)
+                // return
+            }   
+            fetch(`api?page=${pageNum}&per=${perPage}`)
+            .then(res => res.json())
+            .then(data => {
+                currentPage++
+
+                appendToContainer(data.contents, classFilter)
+                addButtonListeners()
+
+                if (data.length < perPage) {
+                    moreBtn.style.display = 'none'
+                } else {
+                    moreBtn.dataset.loadPage = currentPage
+                    moreBtn.classList.remove('loading')
+                }
+            })
+            .catch(error => console.error(error))
+        }   
+
+    }
+
+    var countEls = 0;
+
+    // elements = which elements to show
+    function appendToContainer(data, elements) {
+
+        if (elements != 'All') {
+            if (countEls < perPage) {
+                request(currentPage, elements);
+            } else {
+                return countEls;
+            }
+        }
+
         data.map((item) => {
             console.log(item);
 
             var itemEl = document.createElement('article');
-            itemEl.className = 'block';
+            itemEl.classList.add('block');
             itemEl.dataset.class = item.class;
+
+            // hide element if a filtered request is made
+            // and the element class is not the requested class
+            // count elements shown on page
+            if (elements != 'All') {
+                if (itemEl.dataset.class !== elements) {
+                    itemEl.classList.add('hidden');
+                } else {
+                    countEls++;
+                    console.log(countEls)
+                }
+            }
 
             if (item.class == 'Text') {
                 itemEl.innerHTML = `
@@ -79,12 +147,17 @@
 
             else
             if (item.class == 'Link') {
+                if (item.title.length < 1) {
+                    var name = item.source.url
+                } else {
+                    var name = item.title
+                }
                 itemEl.innerHTML = `
                     <span class="block__class">
                         ${item.class}
                     </span>
                     <a href="${item.source.url}">
-                        ${item.title}
+                        ${name}
                     </a>
                     <i>${item.description}</i>
                 `
@@ -94,44 +167,42 @@
         });
     }
 
-    function makeFilterButtons(data, exclude) {
-        allBtn = document.createElement('button')
-        allBtn.dataset.filterValue = "All"
-        allBtn.innerHTML = "All"
-        allBtn.classList.add('active')
-        filters.appendChild(allBtn)
-
-        data.forEach((item) => {
-            if(item.class != exclude) {
-                var value = item.class;
-                if (classes.indexOf(value) === -1) {
-                    classes.push(value)
-
-                    var btn = document.createElement('button');
-                    btn.dataset.filterValue = value;
-                    btn.innerHTML = value;
-                    filters.appendChild(btn);
-                }
-            }
-        })
-    }
-
-    function addEventListeners() {
+    function addButtonListeners() {
 
         const blocks = document.querySelectorAll('.block');
 
         filters.querySelectorAll('button').forEach((button) => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
+                //reset element count
+                countEls = 0;
                 var value = this.dataset.filterValue;
+                filters.querySelectorAll('button').forEach((button) => {
+                    button.classList.remove('active');
+                })
+                this.classList.add('active');
                 if (value == 'All') {
                     blocks.forEach((block) => {
-                        block.classList.add('visible');
+                        block.classList.remove('hidden');
                     })
+                } else {
+                    filterExistingBlocks(value);
+                    request(currentPage, value)
                 }
             })
         })
 
+    }
+
+    function filterExistingBlocks(val) {
+        const blocks = document.querySelectorAll('.block');
+        blocks.forEach((block) => {
+            if (block.dataset.class != val) {
+                block.classList.add('hidden')
+            } else {
+                block.classList.remove('hidden')
+            }
+        });
     }
 
 </script>

@@ -3,6 +3,10 @@
     border-bottom: 1px dotted; 
 }
 
+    .block.hidden {
+        display: none;
+    }
+
 .block img {
     max-width: 100%;
 }
@@ -14,6 +18,10 @@
     padding: .15em 1em;
     font-size: .7em;
     border: 1px dotted;
+}
+
+#load-more.loading {
+    background-color: red
 }
 
 #filters {
