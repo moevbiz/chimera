@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chimera</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <header>
+        <img src="./images/Zvc2dtW.png" alt="" width="200">
+        <nav id="filters">
+
+        </nav>
+    </header>
+    <br>
+    <div id="container">
+
+    </div>
+</body>
+<script>
+    const container = document.getElementById('container')
+    const filters = document.getElementById('filters')
+    const classes = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        init();
+    })
+
+    function init() {
+        fetch('api')
+        .then(res => res.json())
+        .then(data => {
+            // add to array of classes and exclude "channels"
+            makeFilterButtons(data.contents, 'Channel');
+            appendToContainer(data.contents);
+            addEventListeners();
+        })
+        .catch(error => console.error(error))
+    }
+
+    function appendToContainer(data) {
+        data.map((item) => {
+            console.log(item);
+
+            var itemEl = document.createElement('article');
+            itemEl.className = 'block';
+            itemEl.dataset.class = item.class;
+
+            if (item.class == 'Text') {
+                itemEl.innerHTML = `
+                    <span class="block__class">
+                        ${item.class}
+                    </span>
+                    ${item.title}
+                    <i>${item.content}</i>
+                `
+            }
+
+            else 
+            if (item.class == 'Image') {
+                itemEl.innerHTML = `
+                    <img src="${item.image.large.url}">
+                `
+            }
+
+            else
+            if (item.class == 'Attachment') {
+                itemEl.innerHTML = `
+                    <span class="block__class">
+                        ${item.class}
+                    </span>
+                    <a href="${item.attachment.url}">
+                        ${item.title}
+                    </a>
+                    <i>${item.description}</i>
+                `
+            }
+
+            else
+            if (item.class == 'Link') {
+                itemEl.innerHTML = `
+                    <span class="block__class">
+                        ${item.class}
+                    </span>
+                    <a href="${item.source.url}">
+                        ${item.title}
+                    </a>
+                    <i>${item.description}</i>
+                `
+            }
+
+            container.appendChild(itemEl);
+        });
+    }
+
+    function makeFilterButtons(data, exclude) {
+        allBtn = document.createElement('button')
+        allBtn.dataset.filterValue = "All"
+        allBtn.innerHTML = "All"
+        allBtn.classList.add('active')
+        filters.appendChild(allBtn)
+
+        data.forEach((item) => {
+            if(item.class != exclude) {
+                var value = item.class;
+                if (classes.indexOf(value) === -1) {
+                    classes.push(value)
+
+                    var btn = document.createElement('button');
+                    btn.dataset.filterValue = value;
+                    btn.innerHTML = value;
+                    filters.appendChild(btn);
+                }
+            }
+        })
+    }
+
+    function addEventListeners() {
+
+        const blocks = document.querySelectorAll('.block');
+
+        filters.querySelectorAll('button').forEach((button) => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                var value = this.dataset.filterValue;
+                if (value == 'All') {
+                    blocks.forEach((block) => {
+                        block.classList.add('visible');
+                    })
+                }
+            })
+        })
+
+    }
+
+</script>
+</html>
