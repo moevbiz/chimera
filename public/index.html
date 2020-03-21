@@ -51,7 +51,7 @@
         countEls = 0;
         var filterValue = filters.querySelector('button.active').innerHTML
         request(this.dataset.loadPage, filterValue)
-        this.classList.add('loading')
+        // this.classList.add('loading')
     })
 
     let currentPage = 1;
@@ -67,19 +67,23 @@
 
         if (doneLoading) return
 
-        if (countEls > perPage) {
+        if (countEls >= perPage) {
             return countEls
         } else {
             if (classFilter != 'All') {
                 console.log(`filtering by ${classFilter}`)
                 // return
-            }   
+            }
             fetch(`api?page=${pageNum}&per=${perPage}`)
             .then(res => res.json())
             .then(data => {
                 currentPage++
 
                 appendToContainer(data.contents, classFilter)
+
+                if (countEls >= perPage) {
+                    moreBtn.classList.remove('loading')
+                }
 
                 // only add button listeners once
                 if (noButtonListeners) {
@@ -89,12 +93,13 @@
                 console.log(`appended ${data.contents.length} nodes`)
 
                 if (data.contents.length < perPage) {
-                    moreBtn.style.display = 'none'
+                    moreBtn.classList.add('no-more')
+                    document.querySelector('.loading-indicator').innerHTML = "That's all!"
                     console.log('no more data to fetch')
                     return doneLoading = true
                 } else {
                     moreBtn.dataset.loadPage = currentPage
-                    moreBtn.classList.remove('loading')
+                    // moreBtn.classList.remove('loading')
                 }
             })
             .catch(error => console.error(error))
@@ -133,6 +138,8 @@
                     countEls++;
                     console.log(`new elements: ${countEls}, stopping at: ${perPage}`)
                 }
+            } else {
+                countEls++;
             }
 
             if (item.class == 'Text') {
@@ -191,8 +198,6 @@
 
         noButtonListeners = false
 
-        const blocks = document.querySelectorAll('.block');
-
         filters.querySelectorAll('button').forEach((button) => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -204,6 +209,7 @@
                 })
                 this.classList.add('active');
                 if (value == 'All') {
+                    const blocks = document.querySelectorAll('.block');
                     blocks.forEach((block) => {
                         block.classList.remove('hidden');
                     })
