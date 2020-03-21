@@ -34,6 +34,8 @@
     const moreBtn = document.getElementById('load-more')
 
     const perPage = 13
+    let noButtonListeners = true
+    let doneLoading = false
 
     document.addEventListener('DOMContentLoaded', function() {
         init();
@@ -56,6 +58,8 @@
     // pageNum = number of next page, classFilter = which type of content to show
     function request(pageNum, classFilter = 'All') {
 
+        if (doneLoading) return
+
         if (countEls > perPage) {
             return countEls
         } else {
@@ -69,10 +73,18 @@
                 currentPage++
 
                 appendToContainer(data.contents, classFilter)
-                addButtonListeners()
 
-                if (data.length < perPage) {
+                // only add button listeners once
+                if (noButtonListeners) {
+                    addButtonListeners()
+                }
+
+                console.log(`appended ${data.contents.length} nodes`)
+
+                if (data.contents.length < perPage) {
                     moreBtn.style.display = 'none'
+                    console.log('no more data to fetch')
+                    return doneLoading = true
                 } else {
                     moreBtn.dataset.loadPage = currentPage
                     moreBtn.classList.remove('loading')
@@ -111,7 +123,7 @@
                     itemEl.classList.add('hidden');
                 } else {
                     countEls++;
-                    console.log(countEls)
+                    console.log(`new elements: ${countEls}, stopping at: ${perPage}`)
                 }
             }
 
@@ -169,6 +181,8 @@
 
     function addButtonListeners() {
 
+        noButtonListeners = false
+
         const blocks = document.querySelectorAll('.block');
 
         filters.querySelectorAll('button').forEach((button) => {
@@ -187,6 +201,7 @@
                     })
                 } else {
                     filterExistingBlocks(value);
+                    if (countEls > perPage) return
                     request(currentPage, value)
                 }
             })
@@ -196,6 +211,8 @@
 
     function filterExistingBlocks(val) {
         const blocks = document.querySelectorAll('.block');
+        countEls = container.querySelectorAll(`[data-class="${val}`).length
+        console.log(`found ${countEls} existing nodes`)
         blocks.forEach((block) => {
             if (block.dataset.class != val) {
                 block.classList.add('hidden')
