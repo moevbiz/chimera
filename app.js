@@ -6,8 +6,11 @@ const router = express.Router();
 const Arena = require('are.na');
 let arena = new Arena();
 
+// * test channels
 // var channel = 'symbolic-space'
 // var channel = 'ittg_p'
+
+// * chimera channel
 var channel = 'chimera-bmu8__lhcmc'
 
 app.use(bodyParser.urlencoded({ extended: false }));
