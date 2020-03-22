@@ -7,7 +7,8 @@ const Arena = require('are.na');
 let arena = new Arena();
 
 // var channel = 'symbolic-space'
-var channel = 'ittg_p'
+// var channel = 'ittg_p'
+var channel = 'chimera-bmu8__lhcmc'
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
