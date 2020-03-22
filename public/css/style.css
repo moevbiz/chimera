@@ -10,6 +10,9 @@ body {
 .noscroll { overflow: hidden; }
 
 #logo {
+    height: 20vw;
+    max-height: 200px;
+    width: auto;
     cursor: help;
 }
 

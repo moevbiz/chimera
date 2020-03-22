@@ -10,7 +10,9 @@
 
 </head>
 <body>
-    <div id="info" class="hidden"></div>
+    <div id="info" class="hidden">
+        <img src="./images/masked.png" alt="" style="display: inline-block; height: 1em; width: auto">
+    </div>
     <div id="wrap">
         <header>
             <img id="logo" src="./images/Zvc2dtW.png" alt="" width="200">
@@ -261,7 +263,7 @@
     function appendInfo(text) {
         let infoText = document.createElement('span')
         infoText.innerText = text
-        infoBox.appendChild(infoText)
+        infoBox.insertBefore(infoText, infoBox.childNodes[0])
         infoIsSet = true
     }
 
