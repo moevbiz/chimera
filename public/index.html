@@ -5,62 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chimera</title>
     <link rel="stylesheet" href="./css/style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+
 </head>
 <body>
-    <header>
-        <img src="./images/Zvc2dtW.png" alt="" width="200">
-        <nav id="filters">
-            <button data-filter-value="All" class="active">All</button>
-            <button data-filter-value="Link">Link</button>
-            <button data-filter-value="Text">Text</button>
-            <button data-filter-value="Image">Image</button>
-            <button data-filter-value="Attachment">Attachment</button>
-        </nav>
-    </header>
-    <br>
-    <div id="container">
-
-    </div>
-    <br>
-    <div style="height: 2em">
-        <button id="load-more" class="loading" style="width: 100%">
-            Load More
-        </button>
-        <span class="loading-indicator" style="text-align: center;">
-            Loading…
-        </span>
+    <div id="info" class="hidden"></div>
+    <div id="wrap">
+        <header>
+            <img id="logo" src="./images/Zvc2dtW.png" alt="" width="200">
+            <nav id="filters">
+                <button data-filter-value="All" class="active">All</button>
+                <button data-filter-value="Link">Link</button>
+                <button data-filter-value="Text">Text</button>
+                <button data-filter-value="Image">Image</button>
+                <button data-filter-value="Attachment">Attachment</button>
+            </nav>
+        </header>
+        <br>
+        <main id="container"></main>
+        <br>
+        <div style="height: 2em">
+            <button id="load-more" class="page-btn loading" style="width: 100%">
+                Load More
+            </button>
+            <span class="loading-indicator" style="text-align: center;">
+                Loading…
+            </span>
+        </div>
     </div>
 </body>
 <script>
     const container = document.getElementById('container')
     const filters = document.getElementById('filters')
+    const infoBox = document.getElementById('info')
+    const moreBtn = document.getElementById('load-more')
+    const logo = document.getElementById('logo')
+    const wrap = document.getElementById('wrap')
+
     const classes = [];
 
-    const moreBtn = document.getElementById('load-more')
-
-    const perPage = 13
     let noButtonListeners = true
     let doneLoading = false
+    let infoIsSet = false
+    let currentPage = 1;
+    let perPage = 13
+
+    let urlParams = new URLSearchParams(window.location.search);
+    let filter = urlParams.has('filter') ? urlParams.get('filter') : 'All'
 
     document.addEventListener('DOMContentLoaded', function() {
         init();
     })
 
     moreBtn.addEventListener('click', function(e) {
-        //reset element count before next request
+        // * reset element count before next request
         countEls = 0;
         var filterValue = filters.querySelector('button.active').innerHTML
         request(this.dataset.loadPage, filterValue)
-        // this.classList.add('loading')
     })
 
-    let currentPage = 1;
-
     function init() {
-        request(currentPage);
+        if (filter !== 'All') {
+            filters.querySelectorAll('button').forEach((button) => {
+                if (button.dataset.filterValue == filter) {
+                    button.classList.add('active')
+                } else {
+                    button.classList.remove('active')
+                }
+            })
+        }
+        filterBy(filter)
     }
 
-    // pageNum = number of next page, classFilter = which type of content to show
+    // * pageNum = number of next page, classFilter = which type of content to show
     function request(pageNum, classFilter = 'All') {
 
         moreBtn.classList.add('loading')
@@ -77,6 +95,9 @@
             fetch(`api?page=${pageNum}&per=${perPage}`)
             .then(res => res.json())
             .then(data => {
+
+                if (!infoIsSet) appendInfo(data.metadata.description)
+
                 currentPage++
 
                 appendToContainer(data.contents, classFilter)
@@ -85,7 +106,7 @@
                     moreBtn.classList.remove('loading')
                 }
 
-                // only add button listeners once
+                // * only add button listeners once
                 if (noButtonListeners) {
                     addButtonListeners()
                 }
@@ -94,7 +115,7 @@
 
                 if (data.contents.length < perPage) {
                     moreBtn.classList.add('no-more')
-                    document.querySelector('.loading-indicator').innerHTML = "That's all!"
+                    document.querySelector('.loading-indicator').innerHTML = "~"
                     console.log('no more data to fetch')
                     return doneLoading = true
                 } else {
@@ -109,7 +130,7 @@
 
     var countEls = 0;
 
-    // elements = which elements to show
+    // * elements = which class to show
     function appendToContainer(data, elements) {
 
         if (elements != 'All') {
@@ -123,14 +144,14 @@
         data.map((item) => {
             console.log(item);
 
-            var itemEl = document.createElement('article');
+            let itemEl = document.createElement('article');
             itemEl.classList.add('block');
             itemEl.dataset.class = item.class;
             itemEl.id = item.id;
 
-            // hide element if a filtered request is made
-            // and the element class is not the requested class
-            // count elements shown on page
+            // * hide element if a filtered request is made
+            // * and element class is not the requested class
+            // * count elements shown on page
             if (elements != 'All') {
                 if (itemEl.dataset.class !== elements) {
                     itemEl.classList.add('hidden');
@@ -142,11 +163,23 @@
                 countEls++;
             }
 
+            var dateDiv = function(date, id) {
+                date = moment(date).format('YYYY-MM-DD')
+                return `
+                <span class="block__date">
+                    <!-- <a href="block?id=${id}" data-id="${id}"> -->
+                        ${date}
+                    <!-- </a> -->
+                </span>
+                `
+            }
+
             if (item.class == 'Text') {
                 itemEl.innerHTML = `
                     <span class="block__class">
                         ${item.class}
                     </span>
+                    ${dateDiv(item.connected_at, item.id)}
                     ${item.title}
                     <i>${item.content}</i>
                 `
@@ -161,12 +194,18 @@
 
             else
             if (item.class == 'Attachment') {
+                if (item.title.length < 1) {
+                    var name = item.source.url
+                } else {
+                    var name = item.title
+                }
                 itemEl.innerHTML = `
                     <span class="block__class">
                         ${item.class}
                     </span>
+                    ${dateDiv(item.connected_at, item.id)}
                     <a href="${item.attachment.url}">
-                        ${item.title}
+                        ${name}
                     </a>
                     <i>${item.description}</i>
                 `
@@ -183,25 +222,75 @@
                     <span class="block__class">
                         ${item.class}
                     </span>
+                    ${dateDiv(item.connected_at, item.id)}
                     <a href="${item.source.url}">
                         ${name}
                     </a>
                     <i>${item.description}</i>
                 `
             }
-            // only append non-channel nodes for now :~)
+
+            // * TODO: make single block view work correctly
+            // ------------------------------------------------------------------
+            // itemEl.addEventListener('click', function(e) {
+            //     if (e.target.dataset.id) {
+            //         e.preventDefault()
+            //         hideBlocks(this)
+            //         filters.querySelectorAll('button').forEach((filter) => {
+            //             filter.classList.remove('active');
+            //         })
+            //         moreBtn.style.display = 'none'
+            //         history.pushState(this.id, this.id, `block?id=${this.id}`)
+            //     }
+            // })
+            // ------------------------------------------------------------------
+
+            // * only append non-channel nodes for now :~)
             if (item.class != 'Channel' && item.class != 'Media') container.appendChild(itemEl);
         });
     }
 
-    function addButtonListeners() {
+    function hideBlocks(except) {
+        var blocks = document.querySelectorAll('.block')
+        blocks.forEach((block) => {
+            if (block.id !== except.id) block.classList.add('hidden')
+        })
+    }
 
-        noButtonListeners = false
+    // * info box
+    function appendInfo(text) {
+        let infoText = document.createElement('span')
+        infoText.innerText = text
+        infoBox.appendChild(infoText)
+        infoIsSet = true
+    }
+
+    function toggleInfo() {
+        if (info.classList.contains('hidden')) {
+            wrap.classList.add('blur')
+            document.body.classList.add('noscroll')
+            info.classList.remove('hidden')
+        } else {
+            document.body.classList.remove('noscroll')
+            wrap.classList.remove('blur')
+            info.classList.add('hidden')
+        }
+    }
+
+    logo.addEventListener('click', function() {
+        toggleInfo()
+    })
+
+    info.addEventListener('click', function(e) {
+        toggleInfo()
+    })
+
+    function addButtonListeners() {
 
         filters.querySelectorAll('button').forEach((button) => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
-                //reset element count
+                // * reset element count
                 countEls = 0;
                 var value = this.dataset.filterValue;
                 filters.querySelectorAll('button').forEach((button) => {
@@ -209,18 +298,26 @@
                 })
                 this.classList.add('active');
                 if (value == 'All') {
+                    history.pushState('Chimera', 'Chimera', `/`)
                     const blocks = document.querySelectorAll('.block');
                     blocks.forEach((block) => {
                         block.classList.remove('hidden');
                     })
                 } else {
-                    filterExistingBlocks(value);
-                    if (countEls > perPage) return
-                    request(currentPage, value)
+                    history.pushState('Chimera', 'Chimera', `?filter=${value}`)
+                    filterBy(value)
                 }
             })
         })
 
+        noButtonListeners = false
+
+    }
+
+    function filterBy(value) {
+        filterExistingBlocks(value);
+        if (countEls > perPage) return
+        request(currentPage, value)
     }
 
     function filterExistingBlocks(val) {
