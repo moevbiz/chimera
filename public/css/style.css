@@ -40,7 +40,7 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-#info.hidden {
+.hidden {
     display: none;
 }
 
