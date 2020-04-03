@@ -55,4 +55,6 @@ app.use(express.static(__dirname + '/public', {
   extensions: ['html', 'htm'],
 }));
 
-app.listen(3000);
+app.listen(3000, () => {
+  console.log('app listening on port 3000')
+});
