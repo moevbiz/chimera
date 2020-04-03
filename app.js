@@ -9,9 +9,10 @@ let arena = new Arena();
 // * test channels
 // var channel = 'symbolic-space'
 // var channel = 'ittg_p'
+// var channel = 'think-about-it-domjvhshxsq'
 
 // * chimera channel
-var channel = 'chimera-bmu8__lhcmc'
+var channel = 'website-gnwyx51m96o'
 
 app.use(bodyParser.urlencoded({ extended: false }));
 

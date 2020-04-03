@@ -11,7 +11,13 @@
 </head>
 <body>
     <div id="info" class="hidden">
-        <img src="./images/masked.png" alt="" style="display: inline-block; height: 1em; width: auto">
+        <img src="./images/masked.png" alt="" style="
+            display: inline-block; 
+            height: 1em; 
+            width: auto; 
+            vertical-align: top;
+            filter: invert(23%) sepia(69%) saturate(6590%) hue-rotate(114deg) brightness(95%) contrast(105%);
+            ">
     </div>
     <div id="wrap">
         <header>
@@ -260,11 +266,21 @@
     }
 
     // * info box
-    function appendInfo(text) {
+    function appendInfo(string) {
+        let html = processWithRegex(string)
         let infoText = document.createElement('span')
-        infoText.innerText = text
+        infoText.innerHTML = html
         infoBox.insertBefore(infoText, infoBox.childNodes[0])
         infoIsSet = true
+    }
+
+    function processWithRegex(string) {
+        let regex = /\{([^\}]*)\}/g;
+        let newString = string.replace(regex, (_,m) => {
+            const [title, link] = m.split(': ');
+            return `<a href="${link}">${title}</a>`;
+        });
+        return newString;
     }
 
     function toggleInfo() {
