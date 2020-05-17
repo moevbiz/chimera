@@ -31,7 +31,7 @@ app.get('/api', (req, res) => {
   .catch(err => console.log(err));
 });
 
-// * TODO: make single block view work correctly
+// TODO: make single block view work correctly
 // ------------------------------------------------------------------
 // app.get('/api/block/', (req, res) => {
 //   arena.block(req.query.id)
