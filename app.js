@@ -4,7 +4,7 @@ const app = express();
 app.use(bodyParser.json());
 const router = express.Router();
 const Arena = require('are.na');
-let arena = new Arena();
+let arena = new Arena(); 
 
 // * test channels
 // var channel = 'symbolic-space'
